@@ -111,7 +111,7 @@ else's private events, and `422` for invalid input. The web form also returns
 
 ## Tests and automation selectors
 
-Install Chromium for the accessibility test once after installing requirements:
+Install Chromium for the accessibility and end-to-end tests once after installing requirements:
 
 ```sh
 PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers python -m playwright install chromium --only-shell
@@ -142,6 +142,42 @@ elements. Its full axe report and screenshot are saved under
 `test-results/accessibility/`. These automated checks do not replace manual
 accessibility testing.
 
+Run the end-to-end journey with pytest-playwright:
+
+```sh
+python -m pytest tests/e2e/ -v
+```
+
+It resets a fresh temporary database using the seed script, starts its own local
+app, signs in as Alice, creates a private event, confirms it survives a reload,
+then signs out and verifies Bob cannot see it. All UI selectors use `data-testid`.
+The app's normal database is not changed.
+
+`pytest.ini` enables traces and full-page screenshots for passing and failing
+browser runs. Artifacts are saved below `test-results/e2e/`, including `trace.zip`,
+the final screenshot, and an additional `alice-after-refresh.png`. The plugin
+replaces this E2E artifact folder on each pytest run; copy it before another run
+if you want to retain it. Other reports in `test-results/` are kept.
+
+Open a saved trace locally with:
+
+```sh
+python -m playwright show-trace test-results/e2e/<test-folder>/trace.zip
+```
+
+## GitHub Actions
+
+`.github/workflows/test.yml` runs on pushes and pull requests with Python 3.12.
+It installs requirements and Chromium with system dependencies, runs the full
+pytest suite (including unit, API, security, E2E, and accessibility tests), and
+uploads `test-results/` for seven days even when tests fail. Traces, screenshots,
+and a JUnit report are included.
+
+The test step reads the optional GitHub Actions secret named `SECRET_KEY`. If it
+is unavailable, it generates a random key used only inside that pytest process.
+No key is printed or saved to a file. Use seeded fake accounts only; never put
+real account credentials or secret values in the workflow or repository.
+
 Stable `data-testid` values:
 
 - Login: `login-username`, `login-password`, `login-button`, `login-error`.
@@ -153,3 +189,5 @@ Stable `data-testid` values:
 Event cards also have `data-event-id`; calendar cells have `data-date`.
 `validation.py` contains `EventInput`, shared by forms, the API, and the seed
 script. SQLite queries enforce visibility in `database.py`.
+
+test CI

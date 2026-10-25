@@ -1,0 +1,63 @@
+name: Tests
+
+"on":
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CI: "true"
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.playwright-browsers
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install requirements
+        run: python -m pip install -r requirements.txt
+
+      - name: Install Chromium and operating system dependencies
+        run: python -m playwright install --with-deps chromium --only-shell
+
+      - name: Run unit, API, security, E2E, and accessibility tests
+        env:
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+        run: |
+          python - <<'PY'
+          import os
+          import secrets
+
+          import pytest
+
+          # Missing secrets (including fork PRs) get an ephemeral test-only key.
+          # Never print it, write it to a file, or use it outside this test process.
+          os.environ["SECRET_KEY"] = os.environ.get("SECRET_KEY") or secrets.token_urlsafe(32)
+
+          # Fixtures reset isolated databases using only seeded fake data.
+          # One run preserves browser artifacts and reports every test failure.
+          raise SystemExit(pytest.main(["tests/", "-v", "--junitxml=test-results/junit.xml"]))
+          PY
+
+      - name: Upload test results, traces, and screenshots
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-${{ github.run_id }}-${{ github.run_attempt }}
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 7
