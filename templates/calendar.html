@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+<main class="workspace">
+  <section class="calendar-section">
+    <p class="eyebrow">MAKE TIME FOR WHAT MATTERS</p>
+    <div class="month-heading"><div><h1>{{ selected.strftime('%B %Y') }}</h1>
+      <p class="muted">Your events and the plans others share.</p></div>
+      <nav aria-label="Calendar months" class="month-nav">
+        <a href="/?month={{ previous_month }}" aria-label="Previous month" data-testid="previous-month">←</a>
+        <a href="/" data-testid="today-button">Today</a>
+        <a href="/?month={{ next_month }}" aria-label="Next month" data-testid="next-month">→</a>
+      </nav>
+    </div>
+    <div class="calendar-scroll"><table class="calendar" data-testid="calendar">
+      <caption class="sr-only">{{ selected.strftime('%B %Y') }} events</caption>
+      <thead><tr>{% for day in ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] %}<th scope="col">{{ day }}</th>{% endfor %}</tr></thead>
+      <tbody>{% for week in weeks %}<tr>{% for day in week %}
+        <td class="{% if day.month != selected.month %}outside{% endif %}" data-date="{{ day.isoformat() }}">
+          <span class="day {% if day.isoformat() == today %}today{% endif %}">{{ day.day }}</span>
+          {% for event in by_date.get(day.isoformat(), []) %}
+          <article class="event {% if event.private %}private{% endif %}" data-testid="event-card" data-event-id="{{ event.id }}">
+            <span class="event-time">{{ event.start_time }}–{{ event.end_time }}</span>
+            <strong data-testid="event-title">{{ event.title }}</strong>
+            <span class="event-meta">{{ event.owner }} · {{ 'Private' if event.private else 'Public' }}</span>
+          </article>
+          {% endfor %}
+        </td>
+      {% endfor %}</tr>{% endfor %}</tbody>
+    </table></div>
+    <p class="fine">Times are local wall-clock times. Private events are visible only to their owner.</p>
+  </section>
+  <aside class="panel event-panel">
+    <p class="eyebrow">SOMETHING TO LOOK FORWARD TO</p><h2>Add an event</h2>
+    {% if errors %}<div class="error" role="alert" data-testid="event-errors"><ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul></div>{% endif %}
+    <form action="/events" method="post" class="stack">
+      <label for="title">Title <span aria-hidden="true">*</span></label>
+      <input id="title" name="title" maxlength="200" required value="{{ values.get('title', '') }}" placeholder="What’s the plan?" data-testid="event-title-input">
+      <label for="date">Date <span aria-hidden="true">*</span></label>
+      <input id="date" name="date" type="date" required value="{{ values.get('date', today) }}" data-testid="event-date">
+      <div class="time-fields">
+        <div><label for="start_time">Start time</label><input id="start_time" name="start_time" type="time" required value="{{ values.get('start_time', '') }}" data-testid="event-start-time"></div>
+        <div><label for="end_time">End time</label><input id="end_time" name="end_time" type="time" required value="{{ values.get('end_time', '') }}" data-testid="event-end-time"></div>
+      </div>
+      <label class="checkbox" for="private"><input id="private" name="private" type="checkbox" {% if values.get('private') %}checked{% endif %} data-testid="event-private"> Keep this event private</label>
+      <p class="fine">Unchecked events are shared with all signed-in users.</p>
+      <button class="primary" type="submit" data-testid="create-event-button">Create event <span aria-hidden="true">+</span></button>
+    </form>
+  </aside>
+</main>
+{% endblock %}

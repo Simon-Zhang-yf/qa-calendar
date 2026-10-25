@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Sign in · qa-calendar{% endblock %}
+{% block content %}
+<main class="login-layout">
+  <div><p class="eyebrow">A LITTLE SPACE FOR YOUR PLANS</p><h1>Your week,<br>with room to think.</h1>
+    <p class="muted">Keep your own plans close. See what others choose to share.</p>
+  </div>
+  <section class="panel login-panel">
+    <h2>Welcome back</h2><p class="muted">Sign in with a seeded test account.</p>
+    {% if error %}<div class="error" role="alert" data-testid="login-error">{{ error }}</div>{% endif %}
+    <form action="/login" method="post" class="stack">
+      <label for="username">Username</label>
+      <input id="username" name="username" autocomplete="username" required data-testid="login-username">
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required data-testid="login-password">
+      <button class="primary" type="submit" data-testid="login-button">Sign in <span aria-hidden="true">→</span></button>
+    </form>
+    <p class="fine">Fake accounts only. Testing credentials are in seed_data.json.</p>
+  </section>
+</main>
+{% endblock %}

@@ -1,0 +1,13 @@
+{
+  "purpose": "FAKE TEST DATA ONLY. These passwords must never be used outside this local testing app.",
+  "users": [
+    {"id": 1, "username": "alice", "password": "alice-test-only"},
+    {"id": 2, "username": "bob", "password": "bob-test-only"}
+  ],
+  "events": [
+    {"owner": "alice", "title": "Alice's Tuesday planning", "start_time": "14:00", "end_time": "15:00", "private": false},
+    {"owner": "alice", "title": "Alice's private study", "start_time": "16:00", "end_time": "17:00", "private": true},
+    {"owner": "bob", "title": "Bob's public workshop", "start_time": "10:00", "end_time": "11:00", "private": false},
+    {"owner": "bob", "title": "Bob's private appointment", "start_time": "12:00", "end_time": "13:00", "private": true}
+  ]
+}
